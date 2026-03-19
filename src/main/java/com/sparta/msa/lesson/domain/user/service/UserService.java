@@ -26,7 +26,7 @@ public class UserService {
   }
 
   @Transactional // service안에 있는 public메소드는 모두 트랜젝션 처리가 되어야 함
-  public UserResponse update(UserRequest request) {
+  public UserResponse save(UserRequest request) {
 
     User user = userRepository.findByEmail(request.getEmail())
         .orElseThrow(() -> new DomainException(DomainExceptionCode.NOT_FOUND_USER)); // 스냅샷
