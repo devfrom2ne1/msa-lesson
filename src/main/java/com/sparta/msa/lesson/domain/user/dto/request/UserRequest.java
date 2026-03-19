@@ -21,4 +21,8 @@ public class UserRequest {
   String email;
 
   String password;
+
+  public Long getId() {
+    return null;
+  }
 }
