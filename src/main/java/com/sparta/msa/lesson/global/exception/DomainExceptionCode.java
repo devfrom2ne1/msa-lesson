@@ -18,8 +18,9 @@ public enum DomainExceptionCode {
   UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "인증되지 않은 접근입니다."),
   JSON_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Json 데이터 처리 중 에러가 발생하였습니다."),
 
+  NOT_FOUND_USER(HttpStatus.NOT_FOUND, "존재하는 회원이 없습니다."),
   NOT_FOUND_PRODUCT(HttpStatus.NOT_FOUND, "요청 상품이 없습니다."),
-  DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "중복된 메일이 있습니다.");;
+  DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "중복된 메일이 있습니다.");
 
   final HttpStatus status;
   final String message;
