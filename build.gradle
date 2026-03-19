@@ -8,12 +8,14 @@ group = 'com.sparta.msa'
 version = '0.0.1-SNAPSHOT'
 description = 'msa project for Spring Boot'
 
+// Java 21 툴체인 설정
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
+// compileOnly가 annotationProcessor 설정을 상속받도록 설정
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -24,60 +26,88 @@ repositories {
     mavenCentral()
 }
 
+// Spring Cloud BOM으로 버전 일괄 관리
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.2"
     }
 }
 dependencies {
+    // ── Web ──────────────────────────────────────────────────
+    // Tomcat 대신 Undertow 서블릿 컨테이너 사용
     implementation('org.springframework.boot:spring-boot-starter-web') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation 'org.springframework.boot:spring-boot-starter-undertow'
+
+    // ── Data ─────────────────────────────────────────────────
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // ── Validation ───────────────────────────────────────────
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.retry:spring-retry'
-
-    implementation 'org.springframework.boot:spring-boot-configuration-processor'
-
-    implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
-
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
     implementation 'org.hibernate.validator:hibernate-validator:7.0.2.Final'
 
+    // ── Actuator (헬스체크 / 모니터링) ───────────────────────
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // ── Spring Cloud ─────────────────────────────────────────
+    // OpenFeign: 선언적 HTTP 클라이언트 (MSA 서비스 간 통신)
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    // Spring Retry: 재시도 로직 지원
+    implementation 'org.springframework.retry:spring-retry'
+
+    // ── 설정 프로세서 ─────────────────────────────────────────
+    // @ConfigurationProperties 메타데이터 자동 생성
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // ── JAXB (Java 11+ 에서 제거된 XML 바인딩 API 보완) ───────
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+
+    // ── QueryDSL JPA 라이브러리 (타입 안전 동적 쿼리) ───────────────────────
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+
+    // ── API 문서 (Swagger UI) ─────────────────────────────────
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0"
 
+    // ── Flyway (DB 마이그레이션) ──────────────────────────────
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
+    // ── 동영상 처리 ───────────────────────────────────────────
     implementation 'org.jcodec:jcodec:0.2.5'
     implementation 'org.jcodec:jcodec-javase:0.2.5'
 
+    // ── MapStruct (객체 매핑 코드 자동 생성) ─────────────────
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 
+    // ── JWT ───────────────────────────────────────────────────
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // 롬복이 제일 위로 가야함!
+    // ── Lombok (컴파일 타임 코드 자동 생성 / 어노테이션 프로세서보다 먼저 선언) ──
     compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // ── 개발 편의 ─────────────────────────────────────────────
+    // DevTools: 코드 변경 시 자동 재시작
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    // ── DB 드라이버 ───────────────────────────────────────────
     runtimeOnly 'org.postgresql:postgresql'
 
-    annotationProcessor 'org.projectlombok:lombok'
+    // ── 어노테이션 프로세서 ───────────────────────────────────
+    // MapStruct 매퍼 구현체 자동 생성
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
+    // QueryDSL 어노테이션 프로세서 (Q클래스 생성)
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
+    // ── 테스트 ────────────────────────────────────────────────
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -85,6 +115,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-tasks.named('compileJava') {
-    options.annotationProcessorPath = configurations.annotationProcessor
+
+def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
+
+tasks.withType(JavaCompile).configureEach {
+    options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+
+clean {
+    delete querydslDir
 }
