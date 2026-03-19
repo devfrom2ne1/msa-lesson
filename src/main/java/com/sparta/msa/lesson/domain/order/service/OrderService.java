@@ -4,6 +4,7 @@ import com.sparta.msa.lesson.domain.order.entity.Order;
 import com.sparta.msa.lesson.domain.order.repository.OrderRepository;
 import com.sparta.msa.lesson.domain.user.entity.User;
 import com.sparta.msa.lesson.domain.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,13 @@ public class OrderService {
     // Order 엔티티에 User를 LAZY로딩으로 선언했기 때문에 프록시객체만 가져온다.
     Order order = orderRepository.findById(id).get();
     User user = order.getUser(); // 이때 실제 User객체를 가져오게 된다.
+  }
+
+  public void getByUserId(Long userId) {
+    // 주문 리스트 검색
+    // TODO : 특정 주문 검색
+    //User user = userRepository.findById(userId).get();
+    List<Order> order = orderRepository.findByUser_Id(userId);
   }
 
 }
