@@ -29,12 +29,18 @@ public class UserService {
   public UserResponse update(UserRequest request) {
 
     User user = userRepository.findByEmail(request.getEmail())
-        .orElseThrow(() -> new DomainException(DomainExceptionCode.NOT_FOUND_USER));
+        .orElseThrow(() -> new DomainException(DomainExceptionCode.NOT_FOUND_USER)); // 스냅샷
+
+    userRepository.findUserWithOrders(
+        request.getId()); // flush 실행여부(FlushModeType에 따라 다르지만, 보통AUTO면 JPQL실행 전에 flush나감
 
     // 변경감지
     user.setName(request.getName());
     user.setPassword(passwordEncoder.encode(request.getPassword()));
     user.setEmail(request.getEmail());
+
+    User user2 = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new DomainException(DomainExceptionCode.NOT_FOUND_USER)); // 스냅샷
 
     return userMapper.toUserResponse(user);
   }
